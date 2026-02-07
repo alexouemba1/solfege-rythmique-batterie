@@ -1,3 +1,5 @@
+/* src/App.css */
+
 :root {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.4;
@@ -7,6 +9,11 @@
 
 * { box-sizing: border-box; }
 
+body {
+  margin: 0;
+  background: #f6f7fb;
+}
+
 .wrap {
   max-width: 1100px;
   margin: 0 auto;
@@ -15,7 +22,7 @@
 
 .header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 16px;
@@ -125,13 +132,51 @@ select, input[type="range"] { width: 100%; }
 }
 .toggle input { transform: translateY(1px); }
 
-/* Bar */
-.bar {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 8px;
+/* ✅ Badge ÉCOUTE / À TOI (couleurs différentes) */
+.phaseBadge {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 14px;
+  transition: all 0.25s ease;
+  white-space: nowrap;
 }
 
+.phaseBadge .phaseSub {
+  font-weight: 700;
+  opacity: 0.9;
+}
+
+/* 🔵 ÉCOUTE */
+.phaseBadge.listen {
+  background: #e0ecff;
+  color: #1e4fd8;
+  border: 2px solid #1e4fd8;
+}
+
+/* 🟢 À TOI */
+.phaseBadge.play {
+  background: #e6f7ec;
+  color: #117a37;
+  border: 2px solid #117a37;
+}
+
+/* Bar */
+.barWrap {
+  position: relative;
+}
+
+/* ✅ IMPORTANT: la grille reste à 8 colonnes, et "wrap" automatiquement en lignes
+   => 8–16 mesures = 8–16 lignes de 8 cases */
+.bar {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  column-gap: 8px;
+  row-gap: 10px; /* un peu plus lisible entre mesures */
+  grid-auto-rows: 1fr;
+}
+
+/* Cell */
 .cell {
   border-radius: 14px;
   border: 1px solid rgba(0,0,0,0.10);
@@ -142,13 +187,13 @@ select, input[type="range"] { width: 100%; }
   grid-template-rows: 16px 1fr;
   align-items: center;
   justify-items: center;
+  position: relative; /* utile pour les pseudo-éléments */
 }
 
 .cell.beat { background: #fbfbfe; }
 .cell.active { outline: 3px solid rgba(0,0,0,0.25); }
 .cell.rest .glyph { opacity: 0.6; }
 
-/* Résultats méthode */
 .cell.hit { outline: 3px solid rgba(0, 140, 60, 0.55); }
 .cell.miss { outline: 3px solid rgba(176, 0, 32, 0.55); }
 
@@ -163,6 +208,37 @@ select, input[type="range"] { width: 100%; }
   font-weight: 900;
 }
 
+/* ✅ Enfant-friendly: séparation + repère visuel de mesure */
+
+/* petite barre au début de chaque mesure */
+.cell.barStart::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  border-radius: 2px;
+  background: rgba(0,0,0,0.10);
+}
+
+/* ✅ fond alterné une mesure sur deux (léger, pas carnaval)
+   On colore uniquement la première case de la mesure, puis on "étend" visuellement via un halo */
+.cell.barStart.altBar::after {
+  content: "";
+  position: absolute;
+  inset: -6px -6px -6px -6px; /* un léger halo autour */
+  border-radius: 16px;
+  background: rgba(30, 79, 216, 0.04); /* très léger */
+  z-index: -1; /* derrière la cell */
+}
+
+/* Légère séparation horizontale (optionnel) : accentue l’idée de lignes/mesures */
+.cell.barStart {
+  margin-left: 6px;
+}
+
+/* Légende / current */
 .legend {
   display: flex;
   gap: 12px;
@@ -188,9 +264,9 @@ select, input[type="range"] { width: 100%; }
 
 .muted { opacity: 0.75; }
 
-/* ✅ FIX: ligne Session (plus de 3e colonne “fantôme”) */
+/* ✅ FIX: ligne Session */
 .row.sessionRow {
-  grid-template-columns: 90px 1fr; /* seulement Label + Actions */
+  grid-template-columns: 90px 1fr;
 }
 
 .sessionActions {
@@ -198,7 +274,7 @@ select, input[type="range"] { width: 100%; }
   gap: 10px;
   align-items: center;
   justify-content: flex-start;
-  flex-wrap: wrap; /* si écran petit, ça passe à la ligne proprement */
+  flex-wrap: wrap;
 }
 
 .sessionActions .btn.primary {
@@ -206,7 +282,7 @@ select, input[type="range"] { width: 100%; }
 }
 
 .sessionActions .btn {
-  height: 38px; /* uniformise le look */
+  height: 38px;
 }
 
 /* ✅ SIGNATURE */
@@ -217,4 +293,53 @@ select, input[type="range"] { width: 100%; }
   text-align: center;
   opacity: 0.75;
   font-size: 13px;
+}
+
+/* ✅ CONFETTIS */
+.confetti {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.confettiPiece {
+  position: absolute;
+  top: -12px;
+  width: 10px;
+  height: 14px;
+  border-radius: 3px;
+  background: rgba(0,0,0,0.75);
+  animation: confettiFall 900ms ease-out forwards;
+  opacity: 0.9;
+}
+
+@keyframes confettiFall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.95; }
+  100% { transform: translateY(110vh) rotate(260deg); opacity: 0; }
+}
+
+/* ✅ WAOUH #3 (Option 1): PARFAIT centré au-dessus de la mesure */
+.perfectBanner {
+  position: absolute;
+  left: 50%;
+  top: -14px;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 900;
+  letter-spacing: 0.6px;
+  background: #111;
+  color: #fff;
+  border: 2px solid #111;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.perfectBanner.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-2px);
 }
